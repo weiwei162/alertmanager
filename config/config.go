@@ -16,7 +16,9 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net"
+	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -192,7 +194,14 @@ func Load(s string) (*Config, error) {
 
 // LoadFile parses the given YAML file into a Config.
 func LoadFile(filename string) (*Config, error) {
-	content, err := os.ReadFile(filename)
+	var content []byte
+	resp, err := http.Get(filename)
+	if err != nil {
+		content, err = os.ReadFile(filename)
+	} else {
+		content, err = ioutil.ReadAll(resp.Body)
+		resp.Body.Close()	
+	}
 	if err != nil {
 		return nil, err
 	}
